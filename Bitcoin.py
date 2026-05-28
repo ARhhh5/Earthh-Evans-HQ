@@ -31,11 +31,18 @@ st.info("💡 ท่องไว้: โอกาสมีทุกวัน ถ
 
 c1, c2 = st.columns(2)
 with c1:
-    st.checkbox("1. 🚫 วันนี้ไม่มีประกาศตัวเลข Macro ใหญ่ๆ (เช่น FOMC, CPI, NFP)")
-    st.checkbox("2. 📊 IV > HV (ค่าความกลัวสูงกว่าความจริง = ค่าพรีเมียมคุ้มที่จะเสี่ยง)")
+    chk1 = st.checkbox("1. 🚫 วันนี้ไม่มีประกาศตัวเลข Macro ใหญ่ๆ (เช่น FOMC, CPI, NFP)")
+    chk2 = st.checkbox("2. 📊 IV > HV (ค่าความกลัวสูงกว่าความจริง = ค่าพรีเมียมคุ้มที่จะเสี่ยง)")
 with c2:
-    st.checkbox("3. 🟢 Funding Rate ไม่ติดลบหนัก (ป้องกันตลาดโดนบีบ Short Squeeze)")
-    st.checkbox("4. 🎯 เลือก Strike Price ที่ค่า Delta อยู่ระหว่า 0.13 - 0.15 เท่านั้น")
+    chk3 = st.checkbox("3. 🟢 Funding Rate ไม่ติดลบหนัก (ป้องกันตลาดโดนบีบ Short Squeeze)")
+    chk4 = st.checkbox("4. 🎯 เลือก Strike Price ที่ค่า Delta อยู่ระหว่า 0.13 - 0.15 เท่านั้น")
+
+# --- ระบบ AI ควบคุมสัญญาณไฟ ---
+if chk1 and chk2 and chk3 and chk4:
+    st.success("🟢 ALL SYSTEMS GO! ไฟเขียวผ่านฉลุย สภาพตลาดปลอดภัย เตรียมกดเข้าออเดอร์ได้เลยบอส!")
+    st.balloons() # สั่งยิงลูกโป่งฉลอง
+else:
+    st.warning("🚨 ระบบล็อกออเดอร์! เช็คลิสต์ยังไม่ครบ ห้ามกดเข้าเทรดเด็ดขาด (ถือว่าโรงงานปิดพัก 1 วัน)")
 
 st.markdown("---")
 
