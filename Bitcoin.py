@@ -1,79 +1,89 @@
 import streamlit as st
 import pandas as pd
 from datetime import date
+import requests
+import streamlit.components.v1 as components
 
-# 1. ตั้งค่าหน้าเว็บ
-st.set_page_config(page_title="BTC Cash Machine", page_icon="🪙", layout="wide")
-st.title("🪙 BTC Cash Machine (Startup Phase)")
-st.caption("สมุดจดบัญชีและเช็คลิสต์ปั๊มเงินสดรายวัน (BTC Daily Short Call)")
-
-st.markdown("---")
-
-# 2. กระสุนในคลัง (Capital Tracker)
-st.markdown("### 💰 บัญชีคลังแสง (Bybit USDT)")
-col1, col2, col3 = st.columns(3)
-capital = col1.number_input("💸 ทุนตั้งต้น (USDT):", value=100.0, step=10.0)
-current_port = col2.number_input("📈 ยอดพอร์ตปัจจุบัน (USDT):", value=100.0, step=10.0)
-
-profit = current_port - capital
-profit_pct = (profit / capital) * 100 if capital > 0 else 0
-
-if profit >= 0:
-    col3.metric("🎯 กำไรสุทธิ (Net Profit)", f"${profit:,.2f}", f"+{profit_pct:.2f}%")
-else:
-    col3.metric("🩸 ขาดทุนสุทธิ (Net Loss)", f"${profit:,.2f}", f"{profit_pct:.2f}%")
+# 1. ตั้งค่าหน้าเว็บศูนย์บัญชาการ
+st.set_page_config(page_title="Earthh Evans | BTC Sniper", page_icon="🥷", layout="wide")
+st.title("🥷 ศูนย์บัญชาการแผนกสไนเปอร์ BTC (Daily Short Call)")
+st.caption("ระบบดึงข้อมูลอัตโนมัติ & สมุดจดบัญชี (ทุน $10,000 | เป้าหมาย 3-5%/เดือน)")
 
 st.markdown("---")
 
-# 3. เช็คลิสต์กันตาย (Pre-Trade Checklist)
-st.markdown("### ✅ เช็คลิสต์สแกนจุดตาย (ทำทุกเช้า 07:00 น.)")
-st.info("💡 ท่องไว้: โอกาสมีทุกวัน ถ้าเช็คลิสต์ไม่ผ่าน ปิดจอไปนอนซะ อย่าฝืนก้มเก็บเหรียญสิบหน้าสิบล้อ!")
+# 2. เรดาร์รับสัญญาณสด (Live Data Feed)
+st.markdown("### 📡 เรดาร์จับสัญญาณตลาด (ไม่ต้องเปิดเว็บอื่นแล้วบอส!)")
 
+col_data1, col_data2 = st.columns([1, 2])
+
+with col_data1:
+    st.markdown("**1. ค่าความผันผวน & ทิศทางลม (Live)**")
+    # ดึง Funding Rate สดๆ จาก Bybit (Public API ไม่ต้องใช้ Key)
+    try:
+        res = requests.get("https://api.bybit.com/v5/market/funding/history?category=linear&symbol=BTCUSDT&limit=1").json()
+        funding_rate = float(res['result']['list'][0]['fundingRate']) * 100
+        
+        if funding_rate < -0.03:
+            st.error(f"🚨 Funding Rate: {funding_rate:.4f}% (อันตราย! ระวังโดนลาก Short Squeeze)")
+        elif funding_rate > 0.03:
+            st.success(f"🟢 Funding Rate: {funding_rate:.4f}% (ดีมาก! ตลาด Greedy)")
+        else:
+            st.info(f"🟡 Funding Rate: {funding_rate:.4f}% (ตลาดปกติ สภาพกลางๆ)")
+    except:
+        st.warning("ระบบดึง Funding Rate กำลังปรับปรุง")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.info("📊 **IV vs HV Check:** บอสเปิดกระดาน Bybit ควบคู่กัน ถ้าราคาพรีเมียมแพงเว่อร์ (IV สูงกว่าปกติ) จัดการสไนป์ได้เลย!")
+
+with col_data2:
+    st.markdown("**2. ปฏิทินข่าว Macro (Live TradingView)**")
+    # ฝัง Widget ปฏิทินเศรษฐกิจแบบสดๆ ไว้ดู FOMC, CPI, NFP ในแอปเลย
+    components.html("""
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>
+      {
+      "colorTheme": "dark",
+      "isTransparent": true,
+      "width": "100%",
+      "height": "250",
+      "locale": "th_TH",
+      "importanceFilter": "0,1"
+      }
+      </script>
+    </div>
+    """, height=250)
+
+st.markdown("---")
+
+# 3. เช็คลิสต์กันตาย
+st.markdown("### ✅ เช็คลิสต์ก่อนเหนี่ยวไก (ทำ 2 รอบ: 06:00 น. และ เที่ยงคืน)")
 c1, c2 = st.columns(2)
 with c1:
-    chk1 = st.checkbox("1. 🚫 วันนี้ไม่มีประกาศตัวเลข Macro ใหญ่ๆ (เช่น FOMC, CPI, NFP)")
-    chk2 = st.checkbox("2. 📊 IV > HV (ค่าความกลัวสูงกว่าความจริง = ค่าพรีเมียมคุ้มที่จะเสี่ยง)")
+    chk1 = st.checkbox("1. 🚫 กวาดตาดูตารางข้างบนแล้ว วันนี้ไม่มีข่าว Macro แรงๆ (FOMC, CPI, NFP)")
+    chk2 = st.checkbox("2. 📊 IV > HV (ส่องกระดานแล้ว เบี้ยประกันแพงคุ้มค่าเหนื่อย)")
 with c2:
-    chk3 = st.checkbox("3. 🟢 Funding Rate ไม่ติดลบหนัก (ป้องกันตลาดโดนบีบ Short Squeeze)")
-    chk4 = st.checkbox("4. 🎯 เลือก Strike Price ที่ค่า Delta อยู่ระหว่า 0.13 - 0.15 เท่านั้น")
+    chk3 = st.checkbox("3. 🟢 เรดาร์ Funding Rate ข้างบนไม่ได้แจ้งเตือนสีแดง (ไม่ติดลบหนัก)")
+    chk4 = st.checkbox("4. 🎯 เล็งเป้า Strike Price ที่ค่า Delta 0.13 - 0.15 เรียบร้อย")
 
-# --- ระบบ AI ควบคุมสัญญาณไฟ ---
 if chk1 and chk2 and chk3 and chk4:
-    st.success("🟢 ALL SYSTEMS GO! ไฟเขียวผ่านฉลุย สภาพตลาดปลอดภัย เตรียมกดเข้าออเดอร์ได้เลยบอส!")
-    st.balloons() # สั่งยิงลูกโป่งฉลอง
+    st.success("🟢 ALL SYSTEMS GO! สภาพตลาดปลอดภัย บอสไปเซ็ตเงื่อนไขกดออเดอร์แล้วไปนอนได้เลย!")
+    st.balloons()
 else:
-    st.warning("🚨 ระบบล็อกออเดอร์! เช็คลิสต์ยังไม่ครบ ห้ามกดเข้าเทรดเด็ดขาด (ถือว่าโรงงานปิดพัก 1 วัน)")
+    st.warning("🚨 เช็คลิสต์ยังไม่ครบ! ถ้าระบบไม่ให้ผ่าน ห้ามฝืนเปิดออเดอร์เด็ดขาด (จำบทเรียน Gamma Squeeze ไว้บอส!)")
 
 st.markdown("---")
 
-# 4. สมุดจดการเทรดรายวัน (Trade Journal)
-st.markdown("### 📓 สมุดบันทึกปฏิบัติการรายวัน (Trade Journal)")
-st.caption("กรอกบันทึกทุกครั้งที่เข้าเทรด เพื่อดูสถิติ Win Rate ของตัวเอง")
+# 4. สมุดจดการเทรด (P&L Tracking)
+st.markdown("### 📓 สมุดบันทึก P&L (บันทึกเสร็จรอ Settled บ่าย 3)")
 
-# สร้างตารางเปล่าๆ ไว้ให้กรอกข้อมูล
 if 'btc_journal' not in st.session_state:
     st.session_state.btc_journal = pd.DataFrame({
         "วันที่": [date.today().strftime("%Y-%m-%d")],
         "Strike Price": [75000],
-        "ค่าพรีเมียมที่รับ ($)": [20.0],
-        "จุดยอมตาย SL 1:2 ($)": [60.0], # Option price x3
-        "สถานะ": ["รอลุ้นบ่าย 3"] # ชนะ (เก็บเต็ม), แพ้ (ชน SL), รอลุ้นบ่าย 3
+        "ค่าพรีเมียม ($)": [20.0],
+        "SL RR 1:2 ($)": [60.0], 
+        "สถานะ": ["รอลุ้นบ่าย 3"] 
     })
 
-# ใช้ data_editor ให้ลูกพี่พิมพ์แก้ข้อมูลลงไปตรงๆ บนหน้าเว็บได้เลย
 edited_df = st.data_editor(st.session_state.btc_journal, num_rows="dynamic", use_container_width=True)
-
-st.markdown("---")
-
-# 5. กฎเหล็ก
-st.markdown(
-    """
-    <div style="background-color: rgba(255, 94, 94, 0.1); padding: 20px; border-radius: 10px; border-left: 5px solid #ff5e5e;">
-        <h4 style="margin-top: 0; color: #ff5e5e;">🚨 กฎเหล็กประจำบริษัท (ห้ามแหกเด็ดขาด)</h4>
-        <ol style="margin-bottom: 0;">
-            <li><b>จุดตัดไฟ:</b> ทันทีที่ราคาออปชันวิ่งขึ้นไปถึง 3 เท่าของราคาที่เราขาย (ขาดทุน 2 เท่าของกำไร) ต้องกดซื้อคืนเพื่อ Cut Loss ทันที!</li>
-            <li><b>หยุดพัก:</b> ถ้าซวยจัด โดน Stop Loss กินติดกัน 3 วันรวด ให้สั่งปิดแผนกนี้ไปพักร้อน 2-3 วันเพื่อดึงสติ</li>
-        </ol>
-    </div>
-    """, unsafe_allow_html=True
-)
